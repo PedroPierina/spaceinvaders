@@ -1,0 +1,291 @@
+TITLE SQ
+.MODEL small
+.STACK 100h
+.DATA
+	SPACE 		DB 'SPACE INVADERS'
+	LENESCAPE   EQU $-SPACE
+	CENTRASPACE EQU 20 - (LENESCAPE/2)
+	
+	PRESS 		DB 'PRESSIONE QUALQUER TECLA'
+	LENPRESS    EQU $-PRESS
+	CENTRAPRESS EQU 20 - (LENPRESS/2)
+	
+	GANHOU 		DB 'VOCE GANHOU!'
+	LENGANHOU   EQU $-GANHOU
+	CENGANHOU   EQU 20 - (LENGANHOU/2)
+	
+	FEITO       DB 'BY BRUNO KITAKA & PEDRO PIERINA'
+	LENFEITO    EQU $-FEITO
+	CENFEITO 	EQU 20 - (LENFEITO/2)
+	
+	;PUXAMATRIZ	
+	COUNT		DB 0
+	
+	ALIEN1      DB '   x     x   $' ,0ah, 0dh
+	CEN1 		EQU 20 - (14/2)
+	ALIEN2	    DB '    x   x    $' ,0ah, 0dh
+	CEN2	    EQU 20 - (14/2)
+	ALIEN3	    DB '  xxxxxxxxx  $' ,0ah, 0dh
+	CEN3 		EQU 20 - (14/2)
+	ALIEN4	    DB ' xxx xxx xxx $' ,0ah, 0dh
+	CEN4 		EQU 20 - (14/2)
+	ALIEN5	    DB 'xxxxxxxxxxxxx$' ,0ah, 0dh
+	CEN5 		EQU 20 - (14/2)
+	ALIEN6	    DB 'x xxxxxxxxx x$' ,0ah, 0dh
+	CEN6 		EQU 20 - (14/2)
+	ALIEN7	    DB 'x x       x x $' ,0ah, 0dh
+	CEN7 		EQU 20 - (14/2)
+	ALIEN8      DB '   xxx xxx   $' ,0ah, 0dh
+	CEN8 		EQU 20 - (14/2)
+		  
+	NAVEX DW 50
+	NAVEY DW 50
+	
+	ALCOUNT DB 0
+	
+	; ALIENS	db 	'00011000';0  
+			; db	'00111100';1
+			; db	'   11000';2
+			; db	'  xxxx  ';3 
+			; db	'x  xx  x';4
+			; db	'x  xx  x';5
+			; db	'x xxxx x';6
+			; db	' xxxxxx ';7
+	           ; ;[01234567]      matriz
+					   
+			; db 	'01111110';0
+			; db	'10011001';1
+			; db	'10011001';2
+			; db	'11111111';3
+			; db	'00111100';4
+			; db	'00111100';5
+			; db	'01000010';6
+			; db	'10000001';7
+	           ; ;[01234567]
+					   
+			; db 	'        ';0
+			; db	'  x   x ';1
+			; db	'   x x  ';2
+			; db	' xxxxxx ';3
+			; db	'xx xx xx';4
+			; db	'xxxxxxxx';5
+			; db	'x x  x x';6
+			; db	'        ';7
+	           ; ;[01234567]
+					   
+			; db 	'   xx   ';0
+			; db	'  xxxx  ';1
+			; db	' xxxxxx ';2
+			; db	'xxxxxxxx';3
+			; db	'xx xx xx';4
+			; db	'xxxxxxxx';5
+			; db	' x xx x ';6
+			; db	'x x  x x';7
+			   ; ;[01234567]
+			   
+	ALIENTEST   db 	'01111110';0
+			    db	'10011001';1
+				db	'10011001';2
+				db	'11111111';3
+				db	'00111100';4
+				db	'00111100';5
+				db	'01000010';6
+				db	'10000001';7
+				   ;[01234567]
+
+.CODE 
+MOV AX, @DATA
+MOV DS, AX
+MOV ES, AX
+
+MOV AX, 13H
+INT 10h
+
+MOV AX, 1300H
+MOV BX, 10			;COR
+MOV DH, 2 	        ;LINHA
+MOV DL, CENTRASPACE ;COLUNA, vai sempre o centro da tela menos metade da frase, centralizado
+MOV CX, LENESCAPE
+LEA BP, SPACE
+INT 10h
+
+MOV AX, 1300H
+MOV BX, 15            ;COR
+MOV DH, 20 	  		  ;LINHA
+MOV DL, CENTRAPRESS   ;COLUNA, vai sempre o centro da tela menos metade da frase, centralizado
+MOV CX, LENPRESS
+LEA BP, PRESS
+INT 10h
+
+MOV AX, 1300H
+MOV BX, 0Eh            ;COR
+MOV DH, 5 	  		  ;LINHA
+MOV DL, CENFEITO   		  ;COLUNA
+MOV CX, LENFEITO
+LEA BP, FEITO
+INT 10h
+
+PRINTALIEN:
+	MOV AX, 1300H
+	MOV BX, 15            ;COR
+	MOV DH, 8 	  		  ;LINHA
+	MOV DL, CEN1       	  ;COLUNA
+	MOV CX, 13
+	LEA BP, ALIEN1
+	INT 10h
+
+	MOV AX, 1300H
+	MOV BX, 15            ;COR
+	MOV DH, 9 	  		  ;LINHA
+	MOV DL, CEN2             ;COLUNA
+	MOV CX, 13
+	LEA BP, ALIEN2
+	INT 10h
+
+	MOV AX, 1300H
+	MOV BX, 15            ;COR
+	MOV DH, 10 	  		  ;LINHA
+	MOV DL, CEN3       
+	MOV CX, 13
+	LEA BP, ALIEN3
+	INT 10h
+	
+	MOV AX, 1300H
+	MOV BX, 15            ;COR
+	MOV DH, 11 	  		  ;LINHA
+	MOV DL, CEN4       
+	MOV CX, 13
+	LEA BP, ALIEN4
+	INT 10h
+	
+	MOV AX, 1300H
+	MOV BX, 15            ;COR
+	MOV DH, 12 	  		  ;LINHA
+	MOV DL, CEN5       
+	MOV CX, 13
+	LEA BP, ALIEN5
+	INT 10h
+	
+	MOV AX, 1300H
+	MOV BX, 15            ;COR
+	MOV DH, 13 	  		  ;LINHA
+	MOV DL, CEN6       
+	MOV CX, 13
+	LEA BP, ALIEN6
+	INT 10h
+	
+	MOV AX, 1300H
+	MOV BX, 15            ;COR
+	MOV DH, 14 	  		  ;LINHA
+	MOV DL, CEN7       
+	MOV CX, 13
+	LEA BP, ALIEN7
+	INT 10h
+	
+	MOV AX, 1300H
+	MOV BX, 15            ;COR
+	MOV DH, 15 	  		  ;LINHA
+	MOV DL, CEN8       
+	MOV CX, 13
+	LEA BP, ALIEN8
+	INT 10h
+
+MOV AH, 07h ;pressione qualquer tecla
+INT 21h
+
+PRINTAMENU:
+XOR CX,CX
+MOV CX, 0
+
+lds dX, ALIENTEST
+mov [si], 5
+
+
+CMP SI, 1
+JE NEXT
+JMP NEXT2
+NEXT: CALL FUNCPRINT
+
+NEXT2:
+MOV AL, 15  ;cor
+MOV CX, 10     ;coluna
+MOV DX, 10     ;linha
+MOV AH, 0Ch
+INT 10h
+
+MOV AH, 07h ;pressione qualquer tecla
+INT 21h
+
+MOV AX, 0A000h      ;inicia video
+MOV ES, AX
+
+MOV NAVEX, 160   ;move nave para posicao inicial
+MOV NAVEY, 150
+
+MAINLOOP:
+
+	
+
+	MOV CX, 32000   ;clear screen
+	XOR AX, AX
+	XOR DI, DI
+	REP STOS word ptr [di]
+			
+	VERIFICA_FINAL:		
+	CMP ALCOUNT, 0    ;se nao houver aliens
+	JE PRINTFIM      ;pula para print do fim
+;-----------------------------------------------------------
+	JMP MAINLOOP	  ;se nao, atualiza
+	
+PRINTFIM:
+MOV AX, @DATA
+MOV ES, AX
+	
+MOV AX, 1300H		;mensagem ganhou
+MOV BX, 0BH			;COR
+MOV DH, 10 	        ;LINHA
+MOV DL, CENGANHOU 	;COLUNA, vai sempre o centro da tela menos metade da frase, centralizado
+MOV CX, LENGANHOU
+LEA BP, GANHOU
+INT 10h
+
+MOV AX, 1300H
+MOV BX, 15            ;COR
+MOV DH, 20 	  		  ;LINHA
+MOV DL, CENTRAPRESS   ;COLUNA, vai sempre o centro da tela menos metade da frase, centralizado
+MOV CX, LENPRESS
+LEA BP, PRESS
+INT 10h
+
+MOV AX, 1300H
+MOV BX, 15            ;COR
+MOV DH, 24 	  		  ;LINHA
+MOV DL, 0   		  ;COLUNA
+MOV CX, LENFEITO
+LEA BP, FEITO
+INT 10h
+
+MOV AH, 07h ;pressione qualquer tecla
+INT 21h
+
+
+	
+
+MOV AH, 4CH
+INT 21H
+
+FUNCPRINT PROC 
+
+MOV AL, 1100b  ;cor
+MOV CX, 0     ;coluna
+MOV DX, 0    ;linha
+MOV AH, 0Ch
+INT 10h
+
+MOV AH, 07h ;pressione qualquer tecla
+INT 21h
+
+RET
+FUNCPRINT ENDP
+
+END
