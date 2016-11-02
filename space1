@@ -1,6 +1,29 @@
 TITLE SQ
 .MODEL small
 .STACK 100h
+PRINTA_OBJETO	MACRO	MATRIZ, COR, XI, YI, LARGURA, TOTAL
+	PUSH 	CX
+	;ZERANDO VARIAVEIS, PARA NAO TER NEHUMA INTERFERENCIA
+	MOV	X_INICIO,0
+	MOV	Y_INICIO, 0
+	MOV	TOTAL_M,0
+	MOV	LARGURA_M,0
+	XOR	SI,SI
+
+	;INICIALIZANDO VARIAVEIS PARA CHAMAR PROCESIMENTO
+	MOV	AL, COR
+	MOV	X_INICIO, XI
+	MOV	Y_INICIO, YI
+	MOV	TOTAL_M, TOTAL
+	MOV	LARGURA_M, LARGURA
+	LEA	SI, MATRIZ
+
+	;CHAMAR PROC 'DISPLAY'
+	CALL	 DISPLAY_OBJ
+
+	POP 	CX
+
+	ENDM
 .DATA
 	SPACE 		DB 'SPACE INVADERS'
 	LENESCAPE   EQU $-SPACE
@@ -39,6 +62,16 @@ TITLE SQ
 	NAVEY DW 50
 	
 	ALCOUNT DB 0
+	
+	ALIEN	DB	0,0,1,0,0,0,0,0,1,0,0
+	DB	0,0,0,1,0,0,0,1,0,0,0
+	DB	0,0,1,1,1,1,1,1,1,0,0
+	DB	0,1,1,0,1,1,1,0,1,1,0
+	DB	1,1,1,1,1,1,1,1,1,1,1
+	DB	1,0,1,1,1,1,1,1,1,0,1
+	DB	1,0,1,0,0,0,0,0,1,0,1
+	DB	0,0,0,1,1,0,1,1,0,0,0
+
 	
 	ALIENS	db 	'   xx   ';0  
 			db	'  xxxx  ';1
@@ -79,7 +112,19 @@ TITLE SQ
 			db	' x xx x ';6
 			db	'x x  x x';7
 			   ;[01234567]
-
+VEL_X	DW	0
+VEL_Y	DW	0
+IX	DW	0
+IY	DW	0
+;inicio de variaveis utilizadas pelo PRINTA_OBJETO; NAO MUDAR;;;;;;;;;;;;;;;;;;;
+LARGURA_M	DW	0
+TOTAL_M	DW	0
+X_INICIO	DW	0
+Y_INICIO	DW	0
+LADO_X	DW	0
+LADO_Y	DW	0
+COUNT	DW	0
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .CODE 
 MOV AX, @DATA
 MOV DS, AX
@@ -180,30 +225,7 @@ PRINTALIEN:
 MOV AH, 07h ;pressione qualquer tecla
 INT 21h
 
-PRINTAMENU:
-	XOR CX,CX                     ;zera cx para count
-	LEA DI, ALIENS  
-	MALIENS:                      ;verifica se é nave ou vazio
-		CMP BYTE PTR [DI], ' '    ;verifica vazio
-		JE MESPACO                ;pula para vazio   
-		
-		CMP CX, 64
-		JB MNAVE                  ;os primeiros 64 bytes sao para a nave
-		
-		MOV BYTE PTR [DI], 3      ;de 4 em 4
-		JMP MINCR
-		
-	MNAVE:
-		MOV BYTE PTR [DI], 2
-		JMP MINCR
-	MESPACO:
-		MOV BYTE PTR [DI], 0
-
-	MINCR:
-		INC DI					  ;3+1 = 4++
-		INC CX                    ;count
-		CMP CX, 14  ;verifica se terminou
-		JB MALIENS                ;volta ao inicio
+PRINTA_OBJETO	ALIEN, 15, 50 , 50, 11, 88
 
 MOV AX, 0A000h      ;inicia video
 MOV ES, AX
@@ -213,21 +235,22 @@ MOV NAVEY, 150
 
 MOV DX, 3DAh
 
+	MOV	AH, 4CH
+	INT 	21H
 MAINLOOP:
 
-	WT1: 
-	IN AL, DX
-	TEST AL,8
-	JZ WT1
+	; WT1: 
+	; IN AL, DX
+	; TEST AL,8
+	; JZ WT1
 	
-	WT2:
-	IN AL, DX
-	TEST AL,8
-	JNZ WT2
+	; WT2:
+	; IN AL, DX
+	; TEST AL,8TAS
 
 	MOV CX, 32000   ;clear screen
-	XOR AX, AX
-	XOR DI, DI
+	 XOR AX, AX
+	 XOR DI, DI
 	REP STOS word ptr [di]
 			
 	VERIFICA_FINAL:		
@@ -259,7 +282,7 @@ INT 10h
 MOV AX, 1300H
 MOV BX, 15            ;COR
 MOV DH, 24 	  		  ;LINHA
-MOV DL, CENFEITO   		  ;COLUNA
+MOV DL, 0   		  ;COLUNA
 MOV CX, LENFEITO
 LEA BP, FEITO
 INT 10h
@@ -273,5 +296,43 @@ INT 21h
 MOV AH, 4CH
 INT 21H
 
+DISPLAY_OBJ		PROC
+	MOV	LADO_X,0
+	MOV	LADO_Y,0
+	MOV	COUNT,0
+
+INICIO:
+	MOV	CX, X_INICIO
+	ADD	CX, LADO_X
+	INC	LADO_X
+	MOV	DX, Y_INICIO
+	ADD	DX, LADO_Y
+
+	MOV	BL, [SI]
+
+	CMP	BL, 0
+	JE	PRINT0
+
+	MOV	AH, 0CH
+	INT	10H
+
+PRINT0:	INC	SI
+	INC	COUNT
+
+	MOV	BX, LARGURA_M
+	CMP	LADO_X, BX
+	JL	CONTINUA
+
+	MOV	LADO_X, 0
+	INC	LADO_Y
+
+CONTINUA:	MOV	BX, TOTAL_M
+	CMP	COUNT, BX
+	JL	INICIO
+
+	RET
+
+DISPLAY_OBJ	ENDP
 
 END
+
